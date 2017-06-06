@@ -4,10 +4,13 @@
 * by: yyd
 */
 class Badapple {
-	// jpg文件路径以及生成的文件的路径
-	private static $folder = Array (
-		'source' => './jpeg/',
-		'destination' => './'
+	/**
+	* 配置参数
+	*/
+	private static $config = Array(
+		'sourceFolder' => './jpeg/',	// 源文件路径
+		'destinationFolder' => './',	// 生成文件路径
+		'picturesPerTime' => 1000		// 每次转换图片张数
 	);
 	
 	// css和js文件内容
@@ -37,13 +40,12 @@ class Badapple {
 	*
 	*/
 	private static function getFromJpg($from, $to) {
-		//$fileArray = scandir(self::$folder['source']);
-		//$jpgNum = count($fileArray) - 2;
+		
 		
 		$textContent = '';
 		
 		for($i = $from; $i < $to + 1; $i++) {
-			$textContent .= self::jpgToText('jpeg/' . $i . '.jpg');
+			$textContent .= self::jpgToText(self::$config['sourceFolder'] . $i . '.jpg');
 		}
 		echo 'Totally operated ' . ($to - $from) .' frames...' . "\n";
 		return $textContent;
@@ -96,26 +98,26 @@ class Badapple {
 	*
 	*/
 	public static function writeFile() {
-		$htmlFile = fopen(self::$folder['destination'] . 'badapple.html', 'w');
-		$cssFile = fopen(self::$folder['destination'] . 'main.css', 'w');
-		$jsFile = fopen(self::$folder['destination'] . 'script.js', 'w');
+		$htmlFile = fopen(self::$config['destinationFolder'] . 'badapple.html', 'w');
+		$cssFile = fopen(self::$config['destinationFolder'] . 'main.css', 'w');
+		$jsFile = fopen(self::$config['destinationFolder'] . 'script.js', 'w');
 		fwrite($htmlFile, self::$htmlHeader);
 		fwrite($htmlFile, "<body>\n");
-		$text = self::getFromJpg(1,1500);
-		fwrite($htmlFile, $text);
-		unset($text);
-		$text = self::getFromJpg(1500,3000);
-		fwrite($htmlFile, $text);
-		unset($text);
-		$text = self::getFromJpg(3000,4383);
-		fwrite($htmlFile, $text);
-		unset($text);
-		// $text = self::getFromJpg(4500,6000);
-		// fwrite($htmlFile, $text);
-		// unset($text);
-		// $text = self::getFromJpg(6000,6574);
-		// fwrite($htmlFile, $text);
-		// unset($text);
+
+		$jpgNum = count(scandir(self::$config['sourceFolder'])) - 2;
+		for ($i = 1; $i < $jpgNum; $i += self::$config['picturesPerTime']) {
+			$startPicNum = $i;
+			if ($i + self::$config['picturesPerTime'] > $jpgNum) {
+				$endPic = $jpgNum;
+			} else {
+				$endPic = $i + self::$config['picturesPerTime'];
+			}
+			
+			$text = self::getFromJpg($startPicNum, $endPicNum);
+			fwrite($htmlFile, $text);
+			unset($text);
+		}
+		
 		fwrite($htmlFile, self::$jsHeader);
 		fwrite($htmlFile, "</body>\n");
 		fclose($htmlFile);
